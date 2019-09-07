@@ -1,5 +1,4 @@
-# strangle_builder
-Options strangle builder
+# Options positions builder
 
 # Example usage
 ```
