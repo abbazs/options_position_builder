@@ -10,10 +10,29 @@ class opb(object):
     """ Options strangel builder class"""
 
     def __init__(self):
-        self.db = create_engine("sqlite:///data.db")
+        self.db = create_engine("sqlite:///data1.db")
         self.meta_data = MetaData(self.db)
         self.table = Table("file", self.meta_data, autoload=True)
         self.strategy = None
+
+    def push_to_db(self, data_in_dict):
+        """
+        Pushes data in dict to sqlite db
+        -------------------------------------------------
+        Parameters
+        ----------
+        data_in_dict -> (dict) instrument data
+        -------------------------------------------------
+        Returns
+        -------
+        None
+        """
+        if data_in_dict is None:
+            raise Exception("No input data to push.")
+        
+        df = pd.DataFrame.from_dict(data_in_dict, orient='index')
+        df = df.T
+        df.to_sql("DATA", self.db, if_exists="append")
 
     def get_strikes_latest_data(self, strike, opt):
         """
