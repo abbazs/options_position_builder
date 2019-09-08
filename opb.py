@@ -12,7 +12,7 @@ class opb(object):
     def __init__(self):
         self.db = create_engine("sqlite:///data1.db")
         self.meta_data = MetaData(self.db)
-        self.table = Table("file", self.meta_data, autoload=True)
+        self.table = Table("DATA", self.meta_data, autoload=True)
         self.strategy = None
 
     def push_to_db(self, data_in_dict):
