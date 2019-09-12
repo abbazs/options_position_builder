@@ -107,7 +107,7 @@ class opb(object):
         ----------
         cs -> (int) Call strike
         ps -> (int) Put strike
-        at -> (int) Time, if not given takes latest data available
+        at -> (int) Time
         """
         csdf = self.get_strikes_data_at(cs, "CE", at)
         psdf = self.get_strikes_data_at(ps, "PE", at)
