@@ -29,8 +29,8 @@ class opb(object):
         """
         if data_in_dict is None:
             raise Exception("No input data to push.")
-        
-        df = pd.DataFrame.from_dict(data_in_dict, orient='index')
+
+        df = pd.DataFrame.from_dict(data_in_dict, orient="index")
         df = df.T
         df.to_sql("DATA", self.db, if_exists="append")
 
@@ -62,10 +62,30 @@ class opb(object):
         -------------------------------------------------
         Parameters
         ----------
+        strike -> (int) strike price
+        opt -> (str) option type - CE or PE
+        time -> (int) time in int format
+        -------------------------------------------------
+        Returns
+        -------
+        return -> (pandas data frame) having one row of data
         """
-        raise NotImplementedError("To be implemented")
+        dts = self.table
+        stm = select(["*"]).where(
+            and_(
+                dts.c.strike == strike,
+                dts.c.type == opt,
+                dts.c.exchange_timestamp >= time,
+            )
+        )
+        sdf = pd.read_sql_query(stm, con=self.db, parse_dates=["exchange_timestamp"])
+        sdf = sdf.sort_values("exchange_timestamp")
+        if len(sdf) > 0:
+            return sdf.head(1)
+        else:
+            raise Exception("No data available for given inputs.")
 
-    def create_strangle_position(self, cs, ps, csp=None, psp=None, at=None):
+    def create_strangle_position(self, cs, ps):
         """
         Creates strangle position
         -------------------------------------------------
@@ -73,20 +93,40 @@ class opb(object):
         ----------
         cs -> (int) Call strike
         ps -> (int) Put strike
-        csp -> (float) Call strike price, if not given takes latest price
-        psp -> (float) Put strike price, if not given takes latest price
-        at -> (int) Time, if not given takes latest data available
         """
-        if csp is not None:
-            raise NotImplementedError("To be implemented")
-        if psp is not None:
-            print(f"PSP = {psp}")
-            raise NotImplementedError("To be implemented")
-        if at is not None:
-            raise NotImplementedError("To be implemented")
-
         csdf = self.get_strikes_latest_data(cs, "CE")
         psdf = self.get_strikes_latest_data(ps, "PE")
+        posdf = self.build_strangle_position(csdf, psdf)
+        return posdf
+
+    def create_strangle_position_at_time(self, cs, ps, at):
+        """
+        Creates strangle position
+        -------------------------------------------------
+        Parameters
+        ----------
+        cs -> (int) Call strike
+        ps -> (int) Put strike
+        at -> (int) Time, if not given takes latest data available
+        """
+        csdf = self.get_strikes_latest_data(cs, "CE", at)
+        psdf = self.get_strikes_latest_data(ps, "PE", at)
+        posdf = self.build_strangle_position(csdf, psdf)
+        return posdf
+
+    def build_strangle_position(self, csdf, psdf):
+        """
+        Builds strangle position from given data frames
+        -------------------------------------------------
+        Parameters
+        ----------
+        csdf -> (pandas.DataFrame) Call DataFrame
+        psdf -> (pandas.DataFrame) Put DataFrame
+        -------------------------------------------------
+        Returns
+        -------
+        return -> (pandas data frame) having one row of data
+        """
         csd = csdf[["strike", "last_traded_price", "exchange_timestamp"]]
         csd = csd.rename(
             columns={
