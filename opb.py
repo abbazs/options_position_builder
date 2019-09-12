@@ -109,8 +109,8 @@ class opb(object):
         ps -> (int) Put strike
         at -> (int) Time, if not given takes latest data available
         """
-        csdf = self.get_strikes_latest_data(cs, "CE", at)
-        psdf = self.get_strikes_latest_data(ps, "PE", at)
+        csdf = self.get_strikes_data_at(cs, "CE", at)
+        psdf = self.get_strikes_data_at(ps, "PE", at)
         posdf = self.build_strangle_position(csdf, psdf)
         return posdf
 
